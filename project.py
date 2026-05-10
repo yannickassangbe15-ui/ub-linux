@@ -1,6 +1,6 @@
 Name = input("Enter the name of the client : ")
 portefeuille = int(input("Enter la somme d'argent que vous avez dans votre portefeuille: "))
-if portefeuille < 0:
+if portefeuille <= 0:
     print("Invalid amount. Please enter a positive number.")
 else:
     print(f"Client {Name} initialized with {portefeuille} coins.")
