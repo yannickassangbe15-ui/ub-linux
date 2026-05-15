@@ -6,7 +6,7 @@ for i in range(0, 13):
      else :
           print(f" {i} fois {j} = {i*j} \n")
     if i < 12 :
-       print(f"Debut  de la table de mulptiplication de {i + 1}")
+       print(f"Debut  de la table de mulptiplication de {i + 1:3d}")
     else :
       print(f"merci")
 print("fin de la table de multiplication")

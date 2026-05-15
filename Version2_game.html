@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jordy Game 🔗</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Boogaloo&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: #f5f4ef;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+  }
+
+  #game-root {
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 4px 32px rgba(0,0,0,0.10);
+    padding: 2rem 1.75rem;
+    max-width: 560px;
+    width: 100%;
+  }
+
+  #title {
+    font-family: 'Boogaloo', cursive;
+    font-size: 2.2rem;
+    text-align: center;
+    color: #1a1a1a;
+    letter-spacing: 1px;
+    margin-bottom: .25rem;
+  }
+
+  #subtitle {
+    text-align: center;
+    font-size: .85rem;
+    color: #888;
+    margin-bottom: 1.5rem;
+  }
+
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 1.25rem;
+  }
+
+  .stat-card {
+    background: #f5f4ef;
+    border-radius: 12px;
+    padding: .75rem;
+    text-align: center;
+  }
+
+  .stat-label {
+    font-size: 11px;
+    color: #999;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    margin-bottom: 4px;
+  }
+
+  .stat-val {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #1a1a1a;
+  }
+
+  #timer-val { color: #D85A30; }
+  #timer-val.danger { color: #E24B4A; animation: pulse .5s infinite alternate; }
+
+  @keyframes pulse { from { opacity: 1; } to { opacity: .4; } }
+
+  .chain-box {
+    background: #f5f4ef;
+    border-radius: 14px;
+    border: 1px solid #e0dfd8;
+    padding: 1rem;
+    min-height: 56px;
+    margin-bottom: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+    overflow-x: auto;
+  }
+
+  .chain-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #fff;
+    border: 1px solid #e0dfd8;
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: .82rem;
+    font-weight: 600;
+    color: #1a1a1a;
+    white-space: nowrap;
+  }
+
+  .chain-empty {
+    font-size: .82rem;
+    color: #aaa;
+    font-style: italic;
+  }
+
+  .hint-area {
+    text-align: center;
+    margin-bottom: .75rem;
+    display: none;
+  }
+
+  .hint-letter {
+    display: inline-block;
+    background: #FAC775;
+    color: #412402;
+    font-family: 'Boogaloo', cursive;
+    font-size: 1.5rem;
+    padding: 2px 14px;
+    border-radius: 10px;
+    text-transform: uppercase;
+  }
+
+  #feedback {
+    min-height: 36px;
+    font-size: .88rem;
+    font-weight: 600;
+    text-align: center;
+    border-radius: 10px;
+    padding: 8px;
+    margin-bottom: .75rem;
+    transition: all .2s;
+  }
+
+  #feedback.ok { background: #EAF3DE; color: #3B6D11; }
+  #feedback.err { background: #FCEBEB; color: #A32D2D; }
+  #feedback.info { background: #E6F1FB; color: #185FA5; }
+
+  #input-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: .75rem;
+  }
+
+  #word-input {
+    flex: 1;
+    font-size: 1rem;
+    font-family: 'Nunito', sans-serif;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    background: #fff;
+    color: #1a1a1a;
+    outline: none;
+    transition: border-color .15s, box-shadow .15s;
+  }
+
+  #word-input:focus {
+    border-color: #378ADD;
+    box-shadow: 0 0 0 3px rgba(55,138,221,.15);
+  }
+
+  #send-btn {
+    background: #1D9E75;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 20px;
+    font-size: .95rem;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: 'Nunito', sans-serif;
+    transition: background .15s, transform .1s;
+  }
+
+  #send-btn:hover { background: #0F6E56; }
+  #send-btn:active { transform: scale(.97); }
+  #send-btn:disabled { background: #e0dfd8; color: #aaa; cursor: default; }
+
+  .badge {
+    display: inline-block;
+    font-family: 'Boogaloo', cursive;
+    font-size: 1.1rem;
+    padding: 4px 14px;
+    border-radius: 20px;
+    margin: .25rem auto;
+    text-align: center;
+  }
+
+  .badge.gold { background: #FAC775; color: #412402; }
+  .badge.silver { background: #D3D1C7; color: #2C2C2A; }
+
+  #badge-area { text-align: center; margin-bottom: .5rem; }
+
+  #restart-btn {
+    display: none;
+    width: 100%;
+    margin-top: .5rem;
+    padding: 11px;
+    font-size: 1rem;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    background: #D85A30;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background .15s;
+  }
+
+  #restart-btn:hover { background: #993C1D; }
+
+  #start-screen {
+    text-align: center;
+    padding: 1rem 0;
+  }
+
+  #start-screen p {
+    color: #666;
+    font-size: .9rem;
+    margin-bottom: 1.25rem;
+    line-height: 1.7;
+  }
+
+  #start-btn {
+    background: #1D9E75;
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 13px 36px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: 'Nunito', sans-serif;
+    transition: background .15s;
+  }
+
+  #start-btn:hover { background: #0F6E56; }
+
+  #game-area { display: none; }
+
+  /* Timer bar */
+  #timer-bar-wrap {
+    height: 6px;
+    background: #e0dfd8;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+    overflow: hidden;
+  }
+
+  #timer-bar {
+    height: 100%;
+    background: #1D9E75;
+    border-radius: 10px;
+    width: 100%;
+    transition: width 1s linear, background .5s;
+  }
+
+  #timer-bar.danger { background: #E24B4A; }
+</style>
+</head>
+<body>
+<div id="game-root">
+  <div id="title">🔗 Jordy Game</div>
+  <div id="subtitle">Chaîne de mots · chaque mot commence par la dernière lettre du précédent</div>
+
+  <div id="start-screen">
+    <p>
+      Entre un premier mot, puis continue la chaîne.<br>
+      Chaque mot doit commencer par la <strong>dernière lettre</strong> du mot précédent.<br>
+      Tu as <strong>30 secondes</strong> par mot !
+    </p>
+    <button id="start-btn" onclick="startGame()">Jouer ▶</button>
+  </div>
+
+  <div id="game-area">
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-label">Score</div><div class="stat-val" id="score-val">0</div></div>
+      <div class="stat-card"><div class="stat-label">Meilleur</div><div class="stat-val" id="best-val">0</div></div>
+      <div class="stat-card"><div class="stat-label">Temps</div><div class="stat-val" id="timer-val">30</div></div>
+    </div>
+
+    <div id="timer-bar-wrap"><div id="timer-bar"></div></div>
+
+    <div class="chain-box" id="chain-box">
+      <span class="chain-empty" id="chain-empty">La chaîne apparaît ici…</span>
+    </div>
+
+    <div class="hint-area" id="hint-area">
+      Doit commencer par <span class="hint-letter" id="hint-letter">?</span>
+    </div>
+
+    <div id="feedback" class="info">Entre ton premier mot pour démarrer !</div>
+
+    <div id="input-row">
+      <input
+        id="word-input"
+        type="text"
+        placeholder="Ton mot…"
+        autocomplete="off"
+        autocorrect="off"
+        spellcheck="false"
+        oninput="this.value=this.value.toLowerCase()"
+        onkeydown="if(event.key==='Enter')submitWord()"
+      >
+      <button id="send-btn" onclick="submitWord()">Envoyer</button>
+    </div>
+
+    <div id="badge-area"></div>
+    <button id="restart-btn" onclick="restartGame()">↺ Rejouer</button>
+  </div>
+</div>
+
+<script>
+  const TIMER_MAX = 30;
+  let chain = [], score = 0, best = 0, timerSec = TIMER_MAX;
+  let timerInterval = null, gameOver = false, started = false;
+
+  function startGame() {
+    document.getElementById('start-screen').style.display = 'none';
+    document.getElementById('game-area').style.display = 'block';
+    document.getElementById('word-input').focus();
+  }
+
+  function setFeedback(msg, type) {
+    const el = document.getElementById('feedback');
+    el.textContent = msg;
+    el.className = type;
+  }
+
+  function updateTimerBar() {
+    const bar = document.getElementById('timer-bar');
+    const pct = (timerSec / TIMER_MAX) * 100;
+    bar.style.width = pct + '%';
+    bar.classList.toggle('danger', timerSec <= 8);
+  }
+
+  function startTimer() {
+    clearInterval(timerInterval);
+    timerSec = TIMER_MAX;
+    updateTimerDisplay();
+    updateTimerBar();
+    timerInterval = setInterval(() => {
+      timerSec--;
+      updateTimerDisplay();
+      updateTimerBar();
+      if (timerSec <= 0) {
+        clearInterval(timerInterval);
+        endGame('⏰ Temps écoulé !');
+      }
+    }, 1000);
+  }
+
+  function updateTimerDisplay() {
+    const el = document.getElementById('timer-val');
+    el.textContent = timerSec;
+    el.classList.toggle('danger', timerSec <= 8);
+  }
+
+  function submitWord() {
+    if (gameOver) return;
+    const inp = document.getElementById('word-input');
+    const word = inp.value.trim().toLowerCase();
+    inp.value = '';
+    if (!word) { setFeedback('Le mot ne peut pas être vide.', 'err'); return; }
+    if (!/^[a-záàâäéèêëíìîïóòôöúùûüç]+$/.test(word)) {
+      setFeedback('Lettres uniquement, pas de chiffres.', 'err'); return;
+    }
+    if (!started) {
+      started = true;
+      chain.push(word);
+      renderChain();
+      updateHint();
+      setFeedback('✅ Super ! Continue la chaîne !', 'ok');
+      startTimer();
+      inp.focus();
+      return;
+    }
+    const last = chain[chain.length - 1];
+    if (word[0] !== last[last.length - 1]) {
+      endGame(`❌ "${word}" ne commence pas par "${last[last.length - 1].toUpperCase()}"`);
+      return;
+    }
+    clearInterval(timerInterval);
+    chain.push(word);
+    score++;
+    document.getElementById('score-val').textContent = score;
+    if (score > best) { best = score; document.getElementById('best-val').textContent = best; }
+    renderChain();
+    updateHint();
+    setBadge();
+    setFeedback('🎉 Bien joué !', 'ok');
+    startTimer();
+    inp.focus();
+  }
+
+  function renderChain() {
+    const box = document.getElementById('chain-box');
+    document.getElementById('chain-empty') && (document.getElementById('chain-empty').style.display = 'none');
+    box.innerHTML = '';
+    chain.forEach((w, i) => {
+      if (i > 0) {
+        const a = document.createElement('span');
+        a.style.cssText = 'font-size:.7rem;color:#aaa';
+        a.textContent = '→';
+        box.appendChild(a);
+      }
+      const p = document.createElement('span');
+      p.className = 'chain-pill';
+      const last = w[w.length - 1];
+      p.innerHTML = `${w.slice(0, -1)}<strong>${last}</strong>`;
+      box.appendChild(p);
+    });
+    box.scrollLeft = box.scrollWidth;
+  }
+
+  function updateHint() {
+    const area = document.getElementById('hint-area');
+    const letter = document.getElementById('hint-letter');
+    if (chain.length === 0) { area.style.display = 'none'; return; }
+    const last = chain[chain.length - 1];
+    letter.textContent = last[last.length - 1].toUpperCase();
+    area.style.display = 'block';
+  }
+
+  function setBadge() {
+    const area = document.getElementById('badge-area');
+    let txt = '', cls = 'gold';
+    if (score >= 10) txt = '🏆 Legendary !';
+    else if (score >= 5) txt = '⚡ Excellent !';
+    else if (score >= 3) txt = '😎 Nice combo !';
+    else if (score >= 1) { txt = '👍 Good start !'; cls = 'silver'; }
+    area.innerHTML = txt ? `<span class="badge ${cls}">${txt}</span>` : '';
+  }
+
+  function endGame(reason) {
+    gameOver = true;
+    clearInterval(timerInterval);
+    document.getElementById('timer-bar').style.width = '0%';
+    document.getElementById('send-btn').disabled = true;
+    document.getElementById('word-input').disabled = true;
+    setFeedback(`${reason} — Score final : ${score} mot${score > 1 ? 's' : ''}`, 'err');
+    document.getElementById('hint-area').style.display = 'none';
+    document.getElementById('restart-btn').style.display = 'block';
+    if (score > best) { best = score; document.getElementById('best-val').textContent = best; }
+  }
+
+  function restartGame() {
+    chain = []; score = 0; gameOver = false; started = false;
+    document.getElementById('score-val').textContent = 0;
+    document.getElementById('chain-box').innerHTML = '<span class="chain-empty" id="chain-empty">La chaîne apparaît ici…</span>';
+    document.getElementById('hint-area').style.display = 'none';
+    document.getElementById('badge-area').innerHTML = '';
+    document.getElementById('restart-btn').style.display = 'none';
+    document.getElementById('send-btn').disabled = false;
+    document.getElementById('word-input').disabled = false;
+    document.getElementById('word-input').value = '';
+    clearInterval(timerInterval);
+    timerSec = TIMER_MAX;
+    updateTimerDisplay();
+    document.getElementById('timer-bar').style.width = '100%';
+    document.getElementById('timer-bar').classList.remove('danger');
+    setFeedback('Entre ton premier mot pour démarrer !', 'info');
+    document.getElementById('word-input').focus();
+  }
+</script>
+</body>
+</html>
